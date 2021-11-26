@@ -10,3 +10,11 @@ const userSchema = new mongoose.Schema({
 });
 
 module.exports = User = mongoose.model("user", userSchema);
+
+//     ->Users DB
+// Email - Key - Log
+// Password - Log
+// Shop Name
+// Shop Owner Name
+// Contact Number
+// Shop Address

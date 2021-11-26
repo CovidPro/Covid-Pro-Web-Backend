@@ -5,13 +5,13 @@ const auth = require("../middleware/auth");
 const User = require("../models/user.model");
 const Customer = require("../models/customer.model");
 
-router.post("/register", async (req, res) => {
+router.post("/registerc", async (req, res) => {
   try {
     // Read email, password, ... from request body
-    let { email, password, passwordCheck, shopName, shopOwner, shopAddress, contactNumber } = req.body;
+    let { idNumber, password, customerName, customerAddress, contactNumber, email } = req.body;
 
     // validate
-    if (!email || !password || !passwordCheck || !shopOwner || !shopAddress || !contactNumber || !shopName)
+    if (!idNumber || !password || !passwordCheck || !shopOwner || !shopAddress || !contactNumber || !shopName)
       return res.status(400).json({ msg: "Not all fields have been entered." });
     if (password.length < 5)
       return res
@@ -79,7 +79,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
 router.delete("/delete", auth, async (req, res) => {
   try {
     const deletedUser = await User.findByIdAndDelete(req.user);
@@ -106,18 +105,74 @@ router.post("/tokenIsValid", async (req, res) => {
   }
 });
 
-router.get("/a", async (req, res) => {
-  const user = await User.findById(req.user);
+router.get("/", async (req, res) => {
+  const user = await Customer.findById(req.customer);
   res.json({
-    shopName: user.shopName,
-    id: user._id,
+    idNumber: user.idNumber,
+    customerName: user.customerName,
   });
 });
 
+router.get("/id", (req, res) => {
+  Customer.findById(req.params.id)
+      .then((book) => res.json(book))
+      .catch((err) => res.status(404).json({ nobookfound: "No Book found" }));
+});
+
+// @route GET api/books
+// @description Get all books
+// @access Public
 router.get("/getall", (req, res) => {
-  User.find()
-      .then((user) => res.json(user))
+  Customer.find()
+      .then((customers) => res.json(customers))
       .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
 });
 
+// @route GET api/books
+// @description Get all status:customers
+// @access Public
+router.get("/getstatus", (req, res) => {
+  console.log("getstatus");
+  Customer.find({ status : "customer"}, req.params.status)
+      .then((customers) => res.json(customers))
+      .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
+});
+
+router.get("/getstatu", (req, res) => {
+  Customer.find({ $text: { $search: "me" } })
+      .then((customers) => res.json(customers))
+      .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
+});
+router.get("/getstatuse", (req, res) => {
+  Customer.find({ status : "customer", _id: req.params.id})
+      .then((customers) => res.json(customers))
+      .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
+});
+
+
+// TODO : Need to fix put method
+router.put("/sendnot", (req, res) => {
+  console.log("getstatus");
+  var id = "61985d521a6c35c891ecac5a";
+  Customer.findOneAndUpdate(id, {status: "HI"})
+      .then((customers) => res.json({ msg: "Updated successfully" , customers}))
+      .catch((err) =>
+          res.status(400).json({ error: "Unable to update the Database" })
+      );
+});
+
+
+/*
+router.put("/sendNotifsdsdsication", (req, res) => {
+  console.log("getstatus");
+  Customer.updateOne(req.params.id, req.params.notify)
+      .then((customer) => res.json({ msg: "Updated successfully" }))
+      .catch((err) =>
+          res.status(400).json({ error: "Unable to update the Database" })
+      );
+});*/
+
 module.exports = router;
+
+//The following operation uses the $gt operator returns all the documents from the bios collection where birth is greater than new Date('1950-01-01'):
+// db.bios.find( { birth: { $gt: new Date('1950-01-01') } } )
