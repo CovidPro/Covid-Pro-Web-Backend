@@ -27,6 +27,7 @@ mongoose.connect(
 
 // set up routes
 app.use("/users", require("./routes/users"));
+app.use("/customers", require("./routes/customers"));
 
 app.get("/", (req, res) => {
   res.send("Welcome to CovidPro");
