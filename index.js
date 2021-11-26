@@ -32,3 +32,15 @@ app.use("/customers", require("./routes/customers"));
 app.get("/", (req, res) => {
   res.send("Welcome to CovidPro");
 });
+
+/*
+// delete item in mongodb
+app.delete("/delete", (req, res) => {
+  const { id } = "61a107954308a6c28b76d16c";
+  const query = { _id: id };
+  mongoose.model("customers").deleteOne(query, (err, result) => {
+    if (err) throw err;
+    res.send(result);
+  });
+});
+ */

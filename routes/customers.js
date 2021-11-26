@@ -1,7 +1,6 @@
 const router = require("express").Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const auth = require("../middleware/auth");
 const User = require("../models/user.model");
 const Customer = require("../models/customer.model");
 
@@ -79,15 +78,9 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.delete("/delete", auth, async (req, res) => {
-  try {
-    const deletedUser = await User.findByIdAndDelete(req.user);
-    res.json(deletedUser);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
+
+/*
 router.post("/tokenIsValid", async (req, res) => {
   try {
     const token = req.header("x-auth-token");
@@ -103,7 +96,7 @@ router.post("/tokenIsValid", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-});
+});*/
 
 router.get("/", async (req, res) => {
   const user = await Customer.findById(req.customer);
@@ -151,15 +144,102 @@ router.get("/getstatuse", (req, res) => {
 
 
 // TODO : Need to fix put method
-router.put("/sendnot", (req, res) => {
+router.post("/sendnot", (req, res) => {
   console.log("getstatus");
   var id = "61985d521a6c35c891ecac5a";
-  Customer.findOneAndUpdate(id, {status: "HI"})
+  Customer.findOneAndUpdate({_id : id}, {$set:{status: "HI"}})
       .then((customers) => res.json({ msg: "Updated successfully" , customers}))
       .catch((err) =>
           res.status(400).json({ error: "Unable to update the Database" })
       );
 });
+
+router.post("/sendnotic", (req, res) => {
+  console.log("getstatus");
+  var id = "61985d521a6c35c891ecac5a";
+
+  const me = Customer.where({_id : id}).update({status: "HI"})
+      .then((customers) => res.json({ msg: "Updated successfully" , customers, me}))
+      .catch((err) =>
+          res.status(400).json({ error: "Unable to update the Database" })
+      );
+});
+
+// Send "Customer" to http://localhost:8000/api/msg
+router.post("/msg", (req, res) => {
+  console.log("Sending Massage....");
+  try {
+    res.json({
+      msg : "Customer",
+      },
+    );
+  }
+  catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/*
+var http = require('http'); //require the 'http' module
+
+http.createServer(function (req, res) { //create a server)
+  res.writeHead(200, {'Content-Type': 'text/plain'}); //set the headers
+  res.end('Hello World\n'); //write the response
+}).listen(8000); //listen on port 8000
+
+http.get('http://localhost:8000/api/msg', function(res) {
+  console.log("Got response: " + res.statusCode);
+});
+
+http.ServerResponse.prototype.send = function(data) {
+  this.writeHead(200, {'Content-Type': 'text/plain'});
+  this.end(data);
+};
+*/
+
+/*
+router.delete("/delete", (req, res) => {
+  var id = "61a107954308a6c28b76d16c";
+  console.log(req)
+  //Customer.findByIdAndRemove({_id : id}, req.body)
+    //  .then((customers) => res.json({ mgs: "Book entry deleted successfully" }))
+      //.catch((err) => res.status(404).json({ error: "No such a book" }));
+  Customer.findByIdAndDelete(id, function (err, docs) {
+    console.log(docs);
+    if (err){
+      console.log(err)
+    }
+    else{
+      console.log("Deleted : ", docs);
+    }
+  });
+});*/
+
+// Create New Document from deleted data.
+
+router.delete("/delete", async (req, res) => {
+  console.log(req.body);
+  console.log("Del");
+  try {
+    var id = "61a107954308a6c28b76d16c";
+    const deletedCustomer = await Customer.findByIdAndDelete({_id:id});
+    res.json(deletedCustomer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/*
+router.delete("/delete", auth, async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.user);
+    res.json(deletedUser);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+ */
 
 
 /*

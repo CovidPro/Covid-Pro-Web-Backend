@@ -106,7 +106,7 @@ router.post("/tokenIsValid", async (req, res) => {
   }
 });
 
-router.get("/a", async (req, res) => {
+router.get("/a", auth, async (req, res) => {
   const user = await User.findById(req.user);
   res.json({
     shopName: user.shopName,
