@@ -9,25 +9,6 @@ router.post("/registerc", async (req, res) => {
     // Read email, password, ... from request body
     let { idNumber, password, customerName, customerAddress, contactNumber, email } = req.body;
 
-    // validate
-    if (!idNumber || !password || !passwordCheck || !shopOwner || !shopAddress || !contactNumber || !shopName)
-      return res.status(400).json({ msg: "Not all fields have been entered." });
-    if (password.length < 5)
-      return res
-        .status(400)
-        .json({ msg: "The password needs to be at least 5 characters long." });
-    if (password !== passwordCheck)
-      return res
-        .status(400)
-        .json({ msg: "Enter the same password twice for verification." });
-
-    const existingUser = await User.findOne({ email: email });
-    if (existingUser)
-      return res
-        .status(400)
-        .json({ msg: "An account with this email already exists." });
-
-    if (!shopName) shopName = email;
 
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
@@ -219,13 +200,40 @@ router.delete("/delete", (req, res) => {
 
 router.delete("/delete", async (req, res) => {
   console.log(req.body);
+  console.log(req.body.id)
   console.log("Del");
   try {
-    var id = "61a107954308a6c28b76d16c";
+    var id = req.body.id;
     const deletedCustomer = await Customer.findByIdAndDelete({_id:id});
     res.json(deletedCustomer);
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.put("/updat", async (req, res) => {
+  console.log(req.body);
+  console.log(req.body.id)
+  console.log("Update");
+  try {
+    var id = "61a075af7197d80b456b8a99";
+    var val = 1;
+    const deletedCustomer = await Customer.findOneAndUpdate({_id:id}, {name: "nirmal"},{returnDocument:"after"},
+        function (err, result){
+          if (err) {
+            console.log(err);
+          }
+          else {
+            console.log(result);
+          }
+        })
+        .clone().catch(
+            function (error){res.status(500).json({ errors : error.message });}
+        )
+    res.json(deletedCustomer);
+  } catch (err) {
+    res.status(500).json({ errors: err.message });
   }
 });
 
