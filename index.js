@@ -28,6 +28,7 @@ mongoose.connect(
 // set up routes
 app.use("/users", require("./routes/users"));
 app.use("/customers", require("./routes/customers"));
+app.use("/sanitize", require("./arduino/Sanitizer"));
 
 app.get("/", (req, res) => {
   res.send("Welcome to CovidPro");

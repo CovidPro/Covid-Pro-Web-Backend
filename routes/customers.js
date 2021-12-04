@@ -4,6 +4,14 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const Customer = require("../models/customer.model");
 
+if (typeof localStorage === "undefined" || localStorage === null) {
+  var LocalStorage = require('node-localstorage').LocalStorage;
+  localStorage = new LocalStorage('./scratch');
+  localStorage.setItem('myFirstKey', 0);
+}
+
+
+
 router.post("/registerc", async (req, res) => {
   try {
     // Read email, password, ... from request body
@@ -149,9 +157,39 @@ router.post("/sendnotic", (req, res) => {
 // Send "Customer" to http://localhost:8000/api/msg
 router.post("/msg", (req, res) => {
   console.log("Sending Massage....");
+  console.log(req.body);
+
+  //if req.body.msg2 is not empty
+  if(req.body.msg2 !== undefined){
+    console.log("Sending Massage2....");
+    console.log(req.body.msg2);
+    msg23 = req.body.msg2;
+    localStorage.setItem('myFirstKey', msg23);
+    //send message to the server
+    //io.emit("msg", req.body.msg2);
+  }
+
+  console.log(localStorage.getItem('myFirstKey'));
+
+  setTimeout(function () {
+    console.log("5 secondes");
+    localStorage.setItem('myFirstKey', 0);
+    console.log(localStorage.getItem('myFirstKey'));
+  }, 15000);
+  console.log("now");
+
+  // TODO : Setup another timer in frondend to check if the message is sent or not
+  // The backend localStorage will be cleared after 15 seconds (to 0)
+  // So after that another repond can be save
+  // In frontend run a timer and loop over to check if the message is sent or not
+  // It triggered move to next step
+
+  //console.log("remsg " + remsg);
+
   try {
     res.json({
       msg : "Customer",
+      msg2 : localStorage.getItem('myFirstKey'),
       },
     );
   }
