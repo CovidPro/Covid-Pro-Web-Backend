@@ -50,7 +50,7 @@ function readSerialData(data) {
     // http://localhost:5000/sanitize/msg
     router.post("/msg", (req, res) => {
       try {
-        res.json({ msg : tempFail,},);
+        res.json({ msg : !tempFail,},);
       }
       catch (err) {
         res.status(500).json({ error: err.message });
