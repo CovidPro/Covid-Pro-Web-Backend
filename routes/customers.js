@@ -12,6 +12,9 @@ if (typeof localStorage === "undefined" || localStorage === null) {
 
 
 
+
+/*
+
 router.post("/registerc", async (req, res) => {
   try {
     // Read email, password, ... from request body
@@ -36,6 +39,8 @@ router.post("/registerc", async (req, res) => {
   }
 });
 
+*/
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -47,8 +52,8 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email: email });
     if (!user)
       return res
-        .status(400)
-        .json({ msg: "No account with this email has been registered." });
+          .status(400)
+          .json({ msg: "No account with this email has been registered." });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials." });
@@ -66,6 +71,8 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 
 /*
 router.post("/tokenIsValid", async (req, res) => {
@@ -99,6 +106,7 @@ router.get("/id", (req, res) => {
       .catch((err) => res.status(404).json({ nobookfound: "No Book found" }));
 });
 
+
 // @route GET api/books
 // @description Get all books
 // @access Public
@@ -121,12 +129,13 @@ router.get("/getstatus", (req, res) => {
 router.get("/getstatu", (req, res) => {
   Customer.find({ $text: { $search: "me" } })
       .then((customers) => res.json(customers))
-      .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
+      .catch((err) => res.status(404).json({ nocustomersfound: "No Customer found" }));
 });
+
 router.get("/getstatuse", (req, res) => {
   Customer.find({ status : "customer", _id: req.params.id})
       .then((customers) => res.json(customers))
-      .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
+      .catch((err) => res.status(404).json({ nocustomersfound: "No Customer found" }));
 });
 
 
@@ -196,47 +205,28 @@ router.post("/msg", (req, res) => {
   }
 });
 
-/*
-var http = require('http'); //require the 'http' module
+// Create New Document from deleted data.
 
-http.createServer(function (req, res) { //create a server)
-  res.writeHead(200, {'Content-Type': 'text/plain'}); //set the headers
-  res.end('Hello World\n'); //write the response
-}).listen(8000); //listen on port 8000
 
-http.get('http://localhost:8000/api/msg', function(res) {
-  console.log("Got response: " + res.statusCode);
+
+router.delete("/deleteandupdate", async (req, res) => {
+  console.log(req.body);
+  console.log("idNum " + req.body.id)
+  console.log("Del");
+  try {
+    var id = req.body.id;
+    const deletedCustomer = await Customer.findByIdAndDelete({_id:id});
+
+    res.json(deletedCustomer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-http.ServerResponse.prototype.send = function(data) {
-  this.writeHead(200, {'Content-Type': 'text/plain'});
-  this.end(data);
-};
-*/
-
-/*
-router.delete("/delete", (req, res) => {
-  var id = "61a107954308a6c28b76d16c";
-  console.log(req)
-  //Customer.findByIdAndRemove({_id : id}, req.body)
-    //  .then((customers) => res.json({ mgs: "Book entry deleted successfully" }))
-      //.catch((err) => res.status(404).json({ error: "No such a book" }));
-  Customer.findByIdAndDelete(id, function (err, docs) {
-    console.log(docs);
-    if (err){
-      console.log(err)
-    }
-    else{
-      console.log("Deleted : ", docs);
-    }
-  });
-});*/
-
-// Create New Document from deleted data.
 
 router.delete("/delete", async (req, res) => {
   console.log(req.body);
-  console.log(req.body.id)
+  console.log("idNum " + req.body.id)
   console.log("Del");
   try {
     var id = req.body.id;
@@ -273,6 +263,116 @@ router.put("/updat", async (req, res) => {
   }
 });
 
+
+//create new customer
+router.post("/cre", (req, res) => {
+  console.log(req.body.email);
+  Customer.findOne({ email: req.body.email }).then((customer) => {
+    if (customer) {
+      return res.status(400).json("Email already exists");
+    } else {
+      const newCustomer = new Customer({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        status: req.body.status,
+        idNumber: req.body.idNumber,
+      });
+
+      newCustomer.save().then((customer) => res.json(customer));
+    }
+  });
+});
+
+router.post("/copp", async (req, res) => {
+ try {
+   const findandupdate = await Customer.findOneAndUpdate({_id:req.body.id}, {name: req.body.name}, {returnDocument:"after"})
+   .then((customers) => {
+     console.log(customers);
+     console.log("findandupdate"+findandupdate);
+     res.json(customers)
+   })
+   .catch((err) => res.status(404).json({ nocustomersfound: "No Customer found" }));
+
+ }
+ catch (err) {
+   res.status(500).json({ errors: err.message });
+ }
+});
+
+
+router.put("/cop", async (req, res) => {
+  try {
+    const createOrUpdateCustomer = await Customer.findOne({_id:req.body.id})
+        .then((customer) => {
+          if (customer) {
+            console.log("Customer found");
+            console.log(customer);
+            console.log(req.body.status);
+            customer.status = req.body.status;
+            customer.save();
+            try {
+              res.json(customer);
+              console.log("Customer updated");
+
+              return;
+            } catch (err) {
+              console.log("Customer Failed")
+              res.status(500).json({ error: err.message });
+              return;
+            }
+
+            return customer;
+          } else {
+            console.log("Customer not found");
+            return Customer.create(req.body);
+          }
+        })
+        .catch((err) => res.status(400).json({ error: "Unable to create or update the Customer" }));
+    res.json(createOrUpdateCustomer);
+  }
+  catch (err) {
+    res.status(500).json({ errors: err.message });
+  }
+});
+
+
+/*
+var http = require('http'); //require the 'http' module
+
+http.createServer(function (req, res) { //create a server)
+  res.writeHead(200, {'Content-Type': 'text/plain'}); //set the headers
+  res.end('Hello World\n'); //write the response
+}).listen(8000); //listen on port 8000
+
+http.get('http://localhost:8000/api/msg', function(res) {
+  console.log("Got response: " + res.statusCode);
+});
+
+http.ServerResponse.prototype.send = function(data) {
+  this.writeHead(200, {'Content-Type': 'text/plain'});
+  this.end(data);
+};
+*/
+
+/*
+router.delete("/delete", (req, res) => {
+  var id = "61a107954308a6c28b76d16c";
+  console.log(req)
+  //Customer.findByIdAndRemove({_id : id}, req.body)
+    //  .then((customers) => res.json({ mgs: "Book entry deleted successfully" }))
+      //.catch((err) => res.status(404).json({ error: "No such a book" }));
+  Customer.findByIdAndDelete(id, function (err, docs) {
+    console.log(docs);
+    if (err){
+      console.log(err)
+    }
+    else{
+      console.log("Deleted : ", docs);
+    }
+  });
+});*/
+
 /*
 router.delete("/delete", auth, async (req, res) => {
   try {
@@ -284,7 +384,6 @@ router.delete("/delete", auth, async (req, res) => {
 });
 
  */
-
 
 /*
 router.put("/sendNotifsdsdsication", (req, res) => {
