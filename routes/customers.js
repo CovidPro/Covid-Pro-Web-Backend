@@ -15,7 +15,7 @@ if (typeof localStorage === "undefined" || localStorage === null) {
 router.post("/registerc", async (req, res) => {
   try {
     // Read email, password, ... from request body
-    let { idNumber, password, customerName, customerAddress, contactNumber, email } = req.body;
+    let { idNumber, password, customerName, address, contactNumber, email } = req.body;
 
 
     const salt = await bcrypt.genSalt();
@@ -66,8 +66,6 @@ router.post("/login", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
 
 /*
 router.post("/tokenIsValid", async (req, res) => {
