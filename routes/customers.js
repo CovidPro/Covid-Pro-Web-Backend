@@ -4,30 +4,22 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user.model");
 const Customer = require("../models/customer.model");
 
+if (typeof localStorage === "undefined" || localStorage === null) {
+  var LocalStorage = require('node-localstorage').LocalStorage;
+  localStorage = new LocalStorage('./scratch');
+  localStorage.setItem('myFirstKey', 0);
+}
+
+
+
+
+/*
+
 router.post("/registerc", async (req, res) => {
   try {
     // Read email, password, ... from request body
-    let { idNumber, password, customerName, customerAddress, contactNumber, email } = req.body;
+    let { idNumber, password, customerName, address, contactNumber, email } = req.body;
 
-    // validate
-    if (!idNumber || !password || !passwordCheck || !shopOwner || !shopAddress || !contactNumber || !shopName)
-      return res.status(400).json({ msg: "Not all fields have been entered." });
-    if (password.length < 5)
-      return res
-        .status(400)
-        .json({ msg: "The password needs to be at least 5 characters long." });
-    if (password !== passwordCheck)
-      return res
-        .status(400)
-        .json({ msg: "Enter the same password twice for verification." });
-
-    const existingUser = await User.findOne({ email: email });
-    if (existingUser)
-      return res
-        .status(400)
-        .json({ msg: "An account with this email already exists." });
-
-    if (!shopName) shopName = email;
 
     const salt = await bcrypt.genSalt();
     const passwordHash = await bcrypt.hash(password, salt);
@@ -47,6 +39,8 @@ router.post("/registerc", async (req, res) => {
   }
 });
 
+*/
+
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -58,8 +52,8 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email: email });
     if (!user)
       return res
-        .status(400)
-        .json({ msg: "No account with this email has been registered." });
+          .status(400)
+          .json({ msg: "No account with this email has been registered." });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials." });
@@ -112,6 +106,7 @@ router.get("/id", (req, res) => {
       .catch((err) => res.status(404).json({ nobookfound: "No Book found" }));
 });
 
+
 // @route GET api/books
 // @description Get all books
 // @access Public
@@ -134,12 +129,13 @@ router.get("/getstatus", (req, res) => {
 router.get("/getstatu", (req, res) => {
   Customer.find({ $text: { $search: "me" } })
       .then((customers) => res.json(customers))
-      .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
+      .catch((err) => res.status(404).json({ nocustomersfound: "No Customer found" }));
 });
+
 router.get("/getstatuse", (req, res) => {
   Customer.find({ status : "customer", _id: req.params.id})
       .then((customers) => res.json(customers))
-      .catch((err) => res.status(404).json({ nocustomersfound: "No Books found" }));
+      .catch((err) => res.status(404).json({ nocustomersfound: "No Customer found" }));
 });
 
 
@@ -168,9 +164,39 @@ router.post("/sendnotic", (req, res) => {
 // Send "Customer" to http://localhost:8000/api/msg
 router.post("/msg", (req, res) => {
   console.log("Sending Massage....");
+  console.log(req.body);
+
+  //if req.body.msg2 is not empty
+  if(req.body.msg2 !== undefined){
+    console.log("Sending Massage2....");
+    console.log(req.body.msg2);
+    msg23 = req.body.msg2;
+    localStorage.setItem('myFirstKey', msg23);
+    //send message to the server
+    //io.emit("msg", req.body.msg2);
+  }
+
+  console.log(localStorage.getItem('myFirstKey'));
+
+  setTimeout(function () {
+    console.log("5 secondes");
+    localStorage.setItem('myFirstKey', 0);
+    console.log(localStorage.getItem('myFirstKey'));
+  }, 15000);
+  console.log("now");
+
+  // TODO : Setup another timer in frondend to check if the message is sent or not
+  // The backend localStorage will be cleared after 15 seconds (to 0)
+  // So after that another repond can be save
+  // In frontend run a timer and loop over to check if the message is sent or not
+  // It triggered move to next step
+
+  //console.log("remsg " + remsg);
+
   try {
     res.json({
       msg : "Customer",
+      msg2 : localStorage.getItem('myFirstKey'),
       },
     );
   }
@@ -178,6 +204,138 @@ router.post("/msg", (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Create New Document from deleted data.
+
+
+
+router.delete("/deleteandupdate", async (req, res) => {
+  console.log(req.body);
+  console.log("idNum " + req.body.id)
+  console.log("Del");
+  try {
+    var id = req.body.id;
+    const deletedCustomer = await Customer.findByIdAndDelete({_id:id});
+
+    res.json(deletedCustomer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.delete("/delete", async (req, res) => {
+  console.log(req.body);
+  console.log("idNum " + req.body.id)
+  console.log("Del");
+  try {
+    var id = req.body.id;
+    const deletedCustomer = await Customer.findByIdAndDelete({_id:id});
+    res.json(deletedCustomer);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+router.put("/updat", async (req, res) => {
+  console.log(req.body);
+  console.log(req.body.id)
+  console.log("Update");
+  try {
+    var id = "61a075af7197d80b456b8a99";
+    var val = 1;
+    const deletedCustomer = await Customer.findOneAndUpdate({_id:id}, {name: "nirmal"},{returnDocument:"after"},
+        function (err, result){
+          if (err) {
+            console.log(err);
+          }
+          else {
+            console.log(result);
+          }
+        })
+        .clone().catch(
+            function (error){res.status(500).json({ errors : error.message });}
+        )
+    res.json(deletedCustomer);
+  } catch (err) {
+    res.status(500).json({ errors: err.message });
+  }
+});
+
+
+//create new customer
+router.post("/cre", (req, res) => {
+  console.log(req.body.email);
+  Customer.findOne({ email: req.body.email }).then((customer) => {
+    if (customer) {
+      return res.status(400).json("Email already exists");
+    } else {
+      const newCustomer = new Customer({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password,
+        status: req.body.status,
+        idNumber: req.body.idNumber,
+      });
+
+      newCustomer.save().then((customer) => res.json(customer));
+    }
+  });
+});
+
+router.post("/copp", async (req, res) => {
+ try {
+   const findandupdate = await Customer.findOneAndUpdate({_id:req.body.id}, {name: req.body.name}, {returnDocument:"after"})
+   .then((customers) => {
+     console.log(customers);
+     console.log("findandupdate"+findandupdate);
+     res.json(customers)
+   })
+   .catch((err) => res.status(404).json({ nocustomersfound: "No Customer found" }));
+
+ }
+ catch (err) {
+   res.status(500).json({ errors: err.message });
+ }
+});
+
+
+router.put("/cop", async (req, res) => {
+  try {
+    const createOrUpdateCustomer = await Customer.findOne({_id:req.body.id})
+        .then((customer) => {
+          if (customer) {
+            console.log("Customer found");
+            console.log(customer);
+            console.log(req.body.status);
+            customer.status = req.body.status;
+            customer.save();
+            try {
+              res.json(customer);
+              console.log("Customer updated");
+
+              return;
+            } catch (err) {
+              console.log("Customer Failed")
+              res.status(500).json({ error: err.message });
+              return;
+            }
+
+            return customer;
+          } else {
+            console.log("Customer not found");
+            return Customer.create(req.body);
+          }
+        })
+        .catch((err) => res.status(400).json({ error: "Unable to create or update the Customer" }));
+    res.json(createOrUpdateCustomer);
+  }
+  catch (err) {
+    res.status(500).json({ errors: err.message });
+  }
+});
+
 
 /*
 var http = require('http'); //require the 'http' module
@@ -215,20 +373,6 @@ router.delete("/delete", (req, res) => {
   });
 });*/
 
-// Create New Document from deleted data.
-
-router.delete("/delete", async (req, res) => {
-  console.log(req.body);
-  console.log("Del");
-  try {
-    var id = "61a107954308a6c28b76d16c";
-    const deletedCustomer = await Customer.findByIdAndDelete({_id:id});
-    res.json(deletedCustomer);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 /*
 router.delete("/delete", auth, async (req, res) => {
   try {
@@ -240,7 +384,6 @@ router.delete("/delete", auth, async (req, res) => {
 });
 
  */
-
 
 /*
 router.put("/sendNotifsdsdsication", (req, res) => {

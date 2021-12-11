@@ -1,12 +1,13 @@
 const mongoose = require("mongoose");
 
 const customerSchema = new mongoose.Schema({
-  idNumber: { type: String, required: true, unique: true },
-  password: { type: String, required: true, minlength: 5 },
+  idNumber: { type: String },
+  password: { type: String},
   customerName: { type: String },
-  customerAddress: { type: String },
-  contactNumber: { type: String , required: true},
-  email: { type: String }
+  address: { type: String },
+  contactNumber: { type: String },
+  email: { type: String },
+  status: { type: String }
 });
 
 module.exports = Customer = mongoose.model("customer", customerSchema);
